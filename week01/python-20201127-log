@@ -1,5 +1,0 @@
-2020-11-27 14:40:29 - root     - DEBUG    - [line:35] - The root capacity is used 9%
-2020-11-27 14:40:50 - root     - CRITICAL - [line:37] - unsupported operand type(s) for /: 'str' and 'str'
-2020-11-27 14:41:11 - root     - WARNING  - [line:34] - Note that 9% of the root capacity is used
-2020-11-27 14:41:11 - root     - DEBUG    - [line:35] - The root capacity is used 9%
-2020-11-27 14:43:18 - root     - DEBUG    - [line:35] - The root capacity is used 9%
