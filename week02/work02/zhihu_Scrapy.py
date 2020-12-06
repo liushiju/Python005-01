@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#_*_ conding: utf-8 _*_
 import requests
 from queue import Queue
 from bs4 import BeautifulSoup
