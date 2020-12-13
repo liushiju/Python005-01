@@ -588,7 +588,7 @@ ROLLBACK TO （保存点，中间状态）
 #!/usr/bin/python3 
 import pymysql
  
-db = pymysql.connect("s192.168.0.168","testuser","testpass","testdb")
+db = pymysql.connect("192.168.0.168","testuser","testpass","testdb")
  
 try:
 
