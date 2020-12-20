@@ -59,3 +59,4 @@ for cs2 in commentstar2 :
     session.add(comment2)
 
 session.commit()
+
