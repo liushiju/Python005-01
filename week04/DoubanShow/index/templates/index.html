@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>豆瓣电影短评</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/jquery.slim.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+    <a class="navbar-brand" href="/">首页</a>
+    <form class="search" method="get" action="search/">
+        <input class="form-control mr-sm-2" name="q" type="search" placeholder="搜索">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索</button>
+    </form>
+</nav>
+<div class="container">
+    <h2 class="mt-5 mb-3">电影名称：我不是药神</h2>
+    <table class="table">
+        <thead class="thead-light">
+        <tr>
+            <th scope="col", style="background-color:burlywood;">ID</th>
+            <th scope="col", style="background-color:burlywood;">星级</th>
+            <th scope="col", style="background-color: burlywood;">短评</th>
+        </tr>
+        {% for comment in comments %}
+        </thead>
+        <tbody>
+        <tr>
+            <td style="width: 50px; background-color: cornflowerblue;text-align: center;">{{ comment.comment_id }}</td>
+            <td style="width: 50px; background-color: cornflowerblue;text-align: center;">{{ comment.star }}</td>
+            <td style="background-color: cadetblue;">{{ comment.comment }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
