@@ -10,7 +10,7 @@
 - 注意数据库的安全性
 
 ### 2、[获取社区版MySQL软件](https://dev.mysql.com/)
-![image.png](attachment:image.png)
+<img src="picture/Mysql下载.png" alt="Mysql下载.png">
 
 ### 3、包mysql57-community-release-el7-10.noarch.rpm的作用
 - 添加索引从网络中下载mysql一部分相关包
@@ -543,7 +543,7 @@ for i in TABLE_B:
     - 右外连接
     - 全外连接（MySQL不支持）
 
-![image.png](attachment:image.png)
+<img src="picture/MySQLjions.png" alt="MySQLjions" />
 
 ## <center>第七节：事务的特性和隔离级别</center>
 
