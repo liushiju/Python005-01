@@ -16,7 +16,7 @@
 - 模板（Template）
 - 视图（Views）
 
-![image-2.png](attachment:image-2.png)
+<img src="picture/MTV架构模式.png" alt="MTV架构模式"/>
 
 ### Django的特点
 - 采用了MTV的框架
@@ -385,13 +385,13 @@ AttributeError: 'str' object has no attribute 'decode'
 ```
 
 ### 测试运行结果
-![image.png](attachment:image.png)
+<img src="picture/测试运行结果.png" alt="测试运行结果"/>
 
 ### 运行流程
 
 > 运行MyDjango下的manage.py文件 --> 查找settings.py(ROOT_URLCONF) --> urls.py(匹配) --> index中的urls.py --> index中的views.py 
 
-![image-2.png](attachment:image-2.png)
+<img src="picture/MyDjango项目目录结构.png" alt="MyDjango项目目录结构">
 
 ## <center>第五节：模块和包</center>
 
