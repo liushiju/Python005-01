@@ -20,10 +20,8 @@ def timer(func):
         if kwargs:
             pairs = ['%s=%r' % (k, w) for k, w in sorted(kwargs.items())]
             arg_lst.append(','.join(pairs))
-            # print(pairs)
         arg_str = ','.join(arg_lst)
         print('[%0.8fs] %s(%s) -> %r' % (elapsed, name, arg_lst, result))
-        # print(arg_lst)
         return result
     return clock
 
