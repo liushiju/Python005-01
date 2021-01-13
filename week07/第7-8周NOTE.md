@@ -1370,3 +1370,435 @@ func('a', 5)
 
 ## <center>第十四节：yield语句</center>
 
+### 生成器——1
+
+* 1、在函数中使用yield关键字，可以实现生成器
+* 2、生成器可以让函数<font color=red>返回可迭代对象</font>
+* 3、yield 和 return 不同，return 返回后，函数状态终止，yield保持函数的执行状态，返回后，函数回到之前保持的状态继续执行
+* 4、函数被yield会暂停，局部变量也会保存
+* 5、迭代器终止时，会抛出 Stoplteration 异常
+
+### 生成器——2
+
+``` python
+print([i for i in range(0,11)])
+```
+
+替换为
+
+``` python
+gennumber = (i for i in range(0, 11))
+print(next(gennumber))
+print(next(gennumber))
+print(next(gennumber))
+print(next(gennumber))
+print(listgennumber))
+print([i for i in gennumber])
+```
+
+### 生成器——3
+
+> `Iterables` ：包含 `__getitem__()` 或 `__iter()__` 方法的容器对象
+> `Iterator` ：包含 `next()` 和 `__iter__()` 方法
+> `Generator` ：包含 `yield` 语句的函数
+
+> **p1_iter.py**
+
+``` python
+alist = [1, 2, 3, 4, 5]
+hasattr( alist, '__iter__' )  # True
+hasattr( alist, '__next__' )  # False
+
+for i in  alist:
+    print(i)
+
+# 结论一  列表是可迭代对象，或称作可迭代（iterable）,
+#         不是迭代器（iterator）
+
+# __iter__方法是 iter() 函数所对应的魔法方法，
+# __next__方法是 next() 函数所对应的魔法方法
+
+###########################
+
+g = ( i for i in range(5))
+g  #<generator object>
+
+hasattr( g, '__iter__' )  # True
+hasattr( g, '__next__' )  # True
+
+g.__next__()
+next(g)
+for i in g:
+    print(i)
+
+# 结论二 生成器实现完整的迭代器协议
+
+##############################
+# 类实现完整的迭代器协议
+
+class SampleIterator:
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        # Not The End
+        if ...:
+            return ...
+        # Reach The End
+        else:
+            raise StopIteration
+
+# 函数实现完整的迭代器协议
+def SampleGenerator():
+    yield ...
+    yield ...
+    yield ...  # yield语句
+# 只要一个函数的定义中出现了 yield 关键词，则此函数将不再是一个函数，
+# 而成为一个“生成器构造函数”，调用此构造函数即可产生一个生成器对象。
+
+###################
+# check iter
+def check_iterator(obj):
+    if hasattr( obj, '__iter__' ):
+        if hasattr( obj, '__next__' ):
+            print(f'{obj} is a iterator') # 完整迭代器协议
+        else:
+            print(f'{obj} is a iterable') # 可迭代对象
+    else:
+        print(f'{obj} can not iterable') # 不可迭代
+
+def func1():
+    yield range(5)
+
+check_iterator(func1)
+check_iterator(func1())
+
+# 结论三： 有yield的函数是迭代器，执行yield语句之后才变成生成器构造函数
+```
+
+## <center>第十五节：迭代器使用的注意事项【案例】</center>
+
+> **p2_infinite.py**
+
+``` python
+# itertools的三个常见无限迭代器
+import itertools
+
+count = itertools.count()  # 计数器
+next(count)
+next(count)
+next(count)
+
+###############
+cycle = itertools.cycle( ('yes', 'no') ) # 循环遍历
+next(cycle)
+next(cycle)
+next(cycle)
+
+###############
+repeat = itertools.repeat(10, times=2)  # 重复
+next(repeat)
+next(repeat)
+next(repeat)
+
+################
+# 有限迭代器
+for j in itertools.chain('ABC',[1, 2, 3]) :
+    print(j)
+
+# Python3.3 引入了 yield from
+# PEP-380
+def chain(*iterables):
+    for it in iterables:
+        for i in it:
+            yield i
+
+s = 'ABC'
+t = [1, 2, 3]
+list(chain(s, t))
+
+def chain2(*iterables):
+    for i in iterables:
+        yield from i   # 替代内层循环
+
+list(chain2(s, t))
+```
+
+> **p3_destroy.py**
+
+``` python
+# 迭代器有效性测试
+a_dict = {'a':1, 'b':2}
+a_dict_iter = iter(a_dict)
+
+next(a_dict_iter)
+
+a_dict['c']=3
+
+next(a_dict_iter)
+# RuntimeError: 字典进行插入操作后，字典迭代器会立即失效
+
+# 尾插入操作不会损坏指向当前元素的List迭代器,列表会自动变长
+
+# 迭代器一旦耗尽，永久损坏
+x = iter([ y for y in range(5)])
+for i in x:
+    i
+x.__next__()
+```
+
+## <center>第十六节：yield表达式</center>
+
+> **p4_yieldxp.py**
+
+``` python
+def jumping_range(up_to):
+    index = 0
+    while index < up_to:
+        jump = yield index
+        print(f'jump is {jump}')
+        if jump is None:
+            jump = 1   # next() 或者 send(None)
+        index += jump
+        print(f'index is {index}')
+
+if __name__ == '__main__':
+    iterator = jumping_range(5)
+    print(next(iterator)) # 0
+    print(iterator.send(2)) # 2
+    print(next(iterator)) # 3
+    print(iterator.send(-1)) # 2
+    for x in iterator:
+        print(x) # 3,
+```
+
+## <center>第十七节：协程简介</center>
+
+> 协程通常与多线程一起使用。
+> 协程：提高I/O密集型程序的工作效率，对与有I/O密集型应用，有GIL锁，如CPython可以提高效率
+
+### 协程和线程的区别
+
+* 协程是异步，线程是同步的
+* 协程是非抢占式的，协程是抢占式的
+* 协程是被动调度的，协程是主动调度的
+* 协程可以暂停函数的执行，保留上一次调用的状态，是增强型生成器
+* 协程是用户级的任务调度，协程是内核级的任务调度
+* 协程适用于I/O密集型程序，不适用于CPU密集型程序的处理
+
+### 异步编程
+
+* python3.5版本引入了await取代yield from 方式
+
+``` python
+import asyncio
+async def py35_coro():
+    await stuff()
+```
+
+> 注意：await接收的对象必须是 awaitable 对象
+> awaitable 对象定义了 `__await__()` 方法
+
+* awaitable 对象有三类：
+    - 1、协程 coroutine
+    - 2、任务 Task
+    - 3、未来对象 Future
+
+> **p5_yieldfrom.py**
+
+``` python
+# Python3.3之后引入了新语法 yield from
+def ex1():
+    yield 1
+    yield 2
+    return 3
+
+def ex2():
+    ex1_result = yield from ex1()
+    print(f'ex1 : {ex1_result}')
+    yield None
+
+gen1 = ex1()
+gen1.send(None) # 1
+gen1.send(None) # 2
+gen1.send(None) # send 执行到return 返回 StopIteration: 3
+
+for i in ex2():
+    print(i)
+# 1
+# 2
+# ex1:3
+# None
+
+##########################
+def bottom():
+# Returning the yield lets the value that goes up the call stack to come right back
+# down.
+    return (yield 42)
+
+def middle():
+    return (yield from bottom())
+
+def top():
+    return (yield from middle())
+
+# Get the generator.
+gen = top()
+value = next(gen)
+print(value) # Prints '42'.
+try:
+    value = gen.send(value * 2)
+except StopIteration as exc:
+    value = exc.value
+print(value) # Prints '84'
+```
+
+> **p6_async_await.py**
+
+``` python
+# python3.4 支持事件循环的方法
+import asyncio
+
+@asyncio.coroutine
+def py34_func():
+    yield from sth()
+
+##################
+# python3.5 增加async await
+async def py35_func():
+    await sth()
+
+# 注意： await 接收的对象必须是awaitable对象
+# awaitable 对象定义了__await__()方法
+# awaitable 对象有三类
+# 1 协程 coroutine
+# 2 任务 Task
+# 3 未来对象 Future
+#####################
+import asyncio
+async def main():
+    print('hello')
+    await asyncio.sleep(3)
+    print('world')
+
+# asyncio.run()运行最高层级的conroutine
+asyncio.run(main())
+# hello
+# sleep 3 second
+# world
+
+#################
+# 协程调用过程：
+# 调用协程时，会被注册到ioloop，返回coroutine对象
+# 用ensure_future 封装为Future对象
+# 提交给ioloop
+```
+
+> **[asyncio官方文档](https://docs.python.org/zh-cn/3/library/asyncio-task.html)**
+
+## <center>第十八节：aiohttp简介</center>
+
+> **p8_aiohttp2.py**
+
+* **[aiohttp官方文档](https://hubertroy.gitbooks.io/aiohttp-chinese-documentation/content/aiohttp%E6%96%87%E6%A1%A3/ServerTutorial.html)**
+
+``` python
+# Web Server
+from aiohttp import web
+
+# views
+async def index(request):
+    return web.Response(text='hello aiohttp')
+
+# routes
+def setup_routes(app):
+    app.router.add_get('/', index)
+
+# app
+app = web.Application()
+setup_routes(app)
+web.run_app(app, host='127.0.0.1', port=8080)
+```
+
+> **p7_aiohttp1.py**
+
+``` python
+import aiohttp
+import asyncio
+
+url = 'http://httpbin.org/get'
+
+async def fetch(client, url):
+    # get 方式请求url
+    async with client.get(url) as resp:
+        assert resp.status == 200
+        return await resp.text()
+
+async def main():
+    # 获取session对象
+    async with aiohttp.ClientSession() as client:
+        html = await fetch(client, url)
+        print(html)
+
+loop = asyncio.get_event_loop()
+task = loop.create_task(main())
+loop.run_until_complete(task)
+# Zero-sleep 让底层连接得到关闭的缓冲时间
+loop.run_until_complete(asyncio.sleep(0))
+loop.close()
+```
+
+> **p9_mapaio.py**
+
+``` python
+import aiohttp
+import asyncio
+
+urls = [
+    'http://httpbin.org',
+    'http://httpbin.org/get',
+    'http://httpbin.org/ip',
+    'http://httpbin.org/headers'
+]
+
+async def  crawler():
+    async with aiohttp.ClientSession() as session:
+        futures = map(asyncio.ensure_future, map(session.get, urls))
+        for task in asyncio.as_completed(futures):
+            print(await task)
+
+if __name__ == "__main__":
+    ioloop = asyncio.get_event_loop()
+    ioloop.run_until_complete(asyncio.ensure_future(crawler()))
+```
+
+> **p10_proc_con.py**
+
+``` python
+# 进程池和协程
+
+from multiprocessing import Pool
+import asyncio
+import time
+
+async def test(time):
+    await asyncio.sleep(time)
+
+async def main(num):
+    start_time = time.time()
+    tasks = [asyncio.create_task(test(1)) for proxy in range(num)]
+    [await t for t in tasks]
+    print(time.time() - start_time)
+
+def run(num):
+    asyncio.run(main(num))
+
+if __name__ == "__main__":
+    start_time = time.time()
+    p = Pool()
+    for i in range(4):
+        p.apply_async(run, args=(2500,))
+    p.close()
+    p.join()
+    print(f'total {time.time() - start_time}')
+```
