@@ -12,6 +12,7 @@ def my_map(func, *iterable):
         except StopIteration:
             return
 
+
 # 验证 x+y+z 结果
 test_my_map_01 = my_map(lambda x, y, z: x+y+z, [1, 2], [1, 2], [1, 2])
 print(list(test_my_map_01))
@@ -19,8 +20,11 @@ test_map_01 = map(lambda x, y, z: x+y+z, [1, 2], [1, 2], [1, 2])
 print(list(test_map_01))
 
 # 验证 (x+y)*z 的结果
+
+
 def calc(x, y, z):
     return (x+y)*z
+
 
 test_my_map_02 = my_map(calc, [1, 2], [1, 2], [1, 2])
 print(list(test_my_map_02))
