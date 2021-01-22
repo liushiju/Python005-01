@@ -417,7 +417,7 @@ class Teacher:
     def __set__(self, value):
         self.name = value
 
-pythonteacher = Teacher('yin)
+pythonteacher = Teacher('yin')
 ```
 
 ### Django 中的 property
