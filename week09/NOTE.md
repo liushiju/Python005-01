@@ -122,3 +122,6 @@ CBV：类方式
 
 ## <center>第九节：实现搜索和站内消息</center>
 
+[django-filter_Quickstart](https://django-filter.readthedocs.io/en/latest/guide/rest_framework.html#quickstart)
+
+[django-notifications-hq站内消息通知](https://pypi.org/project/django-notifications-hq/)
