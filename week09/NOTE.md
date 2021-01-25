@@ -84,7 +84,7 @@ from rest_framework import serializers
 ``` python
 FBV vs CBV
 FBV: 函数方式
-CBV：类方式
+CBV: 类方式
 ```
 
 [工程代码](课程代码/TUTORIAL)
