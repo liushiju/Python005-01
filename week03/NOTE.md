@@ -125,6 +125,7 @@ default_character_set = utf8mb4
 - 查看校对规则
 
 ```mysql
+> show variables like 'collation%';
 ```
 
 > MySQL中utf8不是UTF-8字符集
@@ -191,6 +192,7 @@ mysql> show variables like 'collation%';
 # _ci    # 大小写不敏感
 # _cs    # 大小写敏感
 ```
+> 校对规则：字符集里面用于字符比较呵排序的一套规则，有的区分大小写，有的不区分大小写。
 
 ## <center>第三节：多种方式连接MySQL数据库</center>
 
