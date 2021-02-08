@@ -16,7 +16,7 @@ class T1(models.Model):
     n_star = models.IntegerField()
     short = models.CharField(max_length=400)
     sentiment = models.FloatField()
-    object = NewManager()
+    objects = NewManager()
 
     class Meta:
         managed = False

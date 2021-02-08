@@ -273,7 +273,129 @@ class Name(models.Model):
     stars = models.CharField(max_length=5)
 ```
 
-Model --> site-packages/django/db/models/base.py -->
+Model --> site-packages/django/db/models/base.py --> ModelBase类、 \_prepare --> 点击line: 118 Options --> \_prepare函数
 
 metaclass元类: 在去创建类的时候，不希望默认这种 new 的方式去创建，创建类的时候希望增加一些，我自身额外功能，这种情况下才会使用元类。
-metaclass元类的父类必须是 type ，而不能是 object ，还有就是实现 `__new__`魔术方法，在这个方法中，返回的必须是一个类
+metaclass元类的父类必须是 type ，而不能是 object ，还有就是实现 `__new__` 魔术方法，在这个方法中，返回的必须是一个类
+
+## <center>第七节：Django源码分析之 model 模型的查询管理器</center>
+
+### 查询管理器
+
+``` python
+def books_short(request):
+    ### 从 models 取数据传给 template ###
+    shorts = T1.objects.all()
+```
+
+* 如何让查询管理器的名称不叫做 objects？
+* 如何利用 Manager(objects) 实现对 Model 的 CRUD？
+* 为什么查询管理器返回 QuerySet 对象？
+
+\# site-packages/django/db/models/manager.py
+
+``` python
+class Manager(BaseManager.from_queryset(QuerySet)):
+    pass
+```
+
+Manager 继承自 BaseManagerFromeQuerySet 类，拥有 QuerySet 的大部分方法，get、create、filter 等方法都来自 QuerySet
+
+Manager --> BaseManager
+views.py --> object -->  objects: ClassVar[BaseManager[Any]]
+
+## <center>第八节：Django源码分析之template模板的加载文件</center>
+
+render函数：模板渲染，也对Django底层进行大量封装
+
+### 主要关注两个功能
+
+1、render怎么找到template目录
+2、在setting.py中定义了模板的一系列配置，这些配置在模板查找的时候起到什么样的功能？在使用模板的时候不单单把HTML进行展现，还对里面带花括号的过滤器、以及变量替换，都替换成Django或者说python中的变量
+
+### 模板引擎
+
+* 模板引擎怎么通过 render() 加载 HTML 文件？
+* 模板引擎怎么对模板进行渲染？
+
+``` python
+def books_short(request):
+    return render(request, 'result.html', locals())
+```
+
+\# site-packages/django/shortcuts.py
+
+``` python
+def render(request, template_name, context=None, content_type=None, status=None, using=None):
+    """
+    Return a HttpResponse whose content is filled with the result of calling
+    django.template.loader.render_to_string() with the passed arguments.
+    """
+    content = loader.render_to_string(template_name, context, request, using=using)
+    return HttpResponse(content, content_type, status)
+```
+
+views.py --> render --> render_to_string --> get_template
+
+### 模板引擎
+
+``` python
+class EngineHandler:
+    @cached_property
+    def templates(self):
+        if self._templates is None:
+            self._templates = settings.TEMPLATES
+
+        templates = OrderedDict()
+        backend_names = []
+        for tpl in self._templates:
+            try:
+                # This will raise an exception if 'BACKEND' doesn't exist or
+                # isn't a string containing at least one dot.
+                default_name = tpl['BACKEND'].rsplit('.', 2)[-2]
+            except Exception:
+                invalid_backend = tpl.get('BACKEND', '<not defined>')
+                raise ImproperlyConfigured(
+                    "Invalid BACKEND for a template engine: {}. Check "
+                    "your TEMPLATES setting.".format(invalid_backend))
+
+            tpl = {
+                'NAME': default_name,
+                'DIRS': [],
+                'APP_DIRS': False,
+                'OPTIONS': {},
+                **tpl,
+            }
+
+            templates[tpl['NAME']] = tpl
+            backend_names.append(tpl['NAME'])
+    return templates
+```
+
+### 加载模板文件
+
+\# site-packages/django/template/loder.py
+
+``` python
+def get_template(template_name, using=None):
+    ...
+    # engine 定义在初始化函数中，是Engine类的实例
+    # Engine类在 site-packages/django/template/engine.py 文件中
+    return engine.get_template(template_name)
+```
+
+\# site-packages/django/template/engine.py
+
+``` python
+class Engine:
+    def get_template(self, template_name):
+        """
+        Return a compiled Template object for the given template name,
+        handling template inheritance recursively.
+        """
+        template, origin = self.find_template(template_name)
+        if not hasattr(template, 'render'):
+            # template needs to be compiled
+            template = Template(template, origin, template_name, engine=self)
+        return template
+```
