@@ -399,3 +399,112 @@ class Engine:
             template = Template(template, origin, template_name, engine=self)
         return template
 ```
+
+## <center>第九节：Django源码分析之template模板的渲染</center>
+
+\# site-packages/django/template/backends/django.py
+
+``` python
+class Template:
+    def __init__(self, template, backend):
+
+    def render(self, context=None, request=None):
+        return self.template.render(context)
+```
+
+其实调用了下面这个template，需要从这个template开始分析
+\# site-packages/django/template/base.py
+
+``` python
+... ...
+class Template:
+    def __init__(self, template_string, origin=None, name=None, engine=None):
+        # If Template is instantiated directly rather than from an Engine and
+        # exactly one Django template engine is configured, use that engine.
+        # This is required to preserve backwards-compatibility for direct use
+        # e.g. Template('...').render(Context({...}))
+        if engine is None:
+            from .engine import Engine
+            engine = Engine.get_default()
+        if origin is None:
+            origin = Origin(UNKNOWN_SOURCE)
+        self.name = name
+        self.origin = origin
+        self.engine = engine
+        # source存储的是模板文件中的内容
+        self.source = str(template_string)  # May be lazy.
+        # 模板会把内容分割成tokens这样的东西，tokens方法把文件内容按照预定义好的
+        # 正则表达式分割成一个一个的列表，每个元素都叫做token类型，token类型会对
+        # 对应内容进行解析，解析好之后会做一个实例化，实例化就叫做node，compile_nodelist()
+        # 返回一个对象叫nodelist
+        self.nodelist = self.compile_nodelist()
+
+    def __iter__(self):
+        for node in self.nodelist:
+            yield from node
+
+    def _render(self, context):
+        return self.nodelist.render(context)
+
+    def render(self, context):
+        "Display stage -- can be called many times"
+        with context.render_context.push_state(self):
+            if context.template is None:
+                with context.bind_template(self):
+                    context.template_name = self.name
+                    return self._render(context)
+            else:
+                return self._render(context)
+... ...
+```
+
+### 模板渲染
+
+如果是 Node 类型，则会调用 render_annotated 方法获取渲染结果，否则直接将元素本身作为结果，继续跟踪 bit = node.render_annotated(context)
+
+``` python
+# Node 类的两个子类
+class TextNode(Node):
+    def render(self, context):
+        # 返回对象(字符串)本身
+        return self.s
+
+class VariableNode(Node):
+    def render(self, context):
+        try:
+            # 使用resolve()解析后返回
+            output = self.filter_expression.resolve(context)
+
+class FilterExpression:
+    def resolve(self, context, ignore_failures=False):
+
+# 如何解析引用类 class Lexer
+class Lexer:
+    def tokenize(self):
+        # split 分割匹配的字串并返回列表
+        # tag_re 是正则表达式模式对象
+        for bit in tag_re.split(self.template_string):
+            ... ...
+        return result
+
+    # 定义四种 token 类型
+    def create_token(self, token_string, position, lineno, in_tag):
+        if in_tag and not self.verbatim:
+            # 1 变量类型， 开头为{{
+            if token_string.startswith(VARIABLE_TAG_START):
+                return Token(TokenType.VAR, token_string[2:-2].strip(), position, lineno)
+            # 2 块类型，开头为%
+            elif token_string.startswith(BLOCK_TAG_START):
+                if block_content[:9] in ('varbatim', 'verbatim '):
+                    self.verbatim = 'end%s' % block_content
+                    return Token(TokenType.BLOCK, block_content, position, lineno)
+            # 3 注释类型，开头为{#
+            elif token_string.startswith(COMMENT_TAG_START):
+                content = "
+                if token_string.find(TRANSLATOR_COMMENT_MARK):
+                    content = token_string[2:-2].strip()
+                    return Token(TokenType.COMMENT, content, position, lineno)
+            else:
+                # 0 文本类型， 字符串字面值
+                return Token(TokenType.TEXT, token_string, position, lineno)
+```
