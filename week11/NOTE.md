@@ -619,7 +619,7 @@ if __name__ == '__main__':
         print(it.next(timeout=1))           #  "4" 
 ```
 
-## 第八节：多进程：进程的创建
+## 第八节：多线程：创建线程
 
 [基于线程的并行学习文档](https://docs.python.org/zh-cn/3.7/library/threading.html)
 
@@ -627,8 +627,307 @@ if __name__ == '__main__':
 
 [底层多线程 API](https://docs.python.org/zh-cn/3.7/library/_thread.html)
 
-<!-- ## 第九节：多进程：进程的创建
-## 第十节：多进程：进程的创建
-## 第十一节：多进程：进程的创建
-## 第十二节：多进程：进程的创建
-## 第十三节：多进程：进程的创 -->
+### 多线程模型
+
+#### 进程与线程的区别是什么？
+
+进程是一个比较重的概念，除了传递进程资源之外，进程也有它自己的一个结构存在，使用的程序，如果是一个多进程并发完成多任务的话，对计算机会有一个很重的资源开销，所以在这种情况下才会产生多线程编程。（多个线程是跑在一个进程中的）
+
+好处：多线程同步数据比多进程同步数据方便很多
+
+#### 经常提到的阻塞和非阻塞、同步和异步是什么意思？
+
+阻塞和非阻塞是调用方看到的结果，同步和异步是被调用方看到的结果
+
+例子：
+
+阻塞：比如给你打电话，按了你的电话号码，然后直接按了拨号，之后就一直拿起电话等待着你来接听电话，等你接完电话才能进行通话。我是发起方，一直在等待，就是阻塞。
+
+非阻塞：比如拨了电话之后，直接把电话开启了免提，然后把它放在旁边，然后做别的事情，不管接不接听，我是发起方，不管对方的状态，叫做非阻塞状态
+
+同步：比如打电话过来，看到后马上接听电话，然后问了一声你好，这就是同步（被发起方的一个操作行为）
+
+异步：比如打电话过来，你那边可能并不能马上接听电话，然后回了一条短信，可能隔很长时间才收到，所以为异步响应（被发起方的一个操作行为）
+
+#### 为什么有多进程还要有多线程？反过来也是？
+
+多线程可以用来做我们CPU消耗资源，而线程则用来共享数据
+
+#### 为什么要产生协程？
+
+多进程多线程程序整个过程是由系统控制，希望进程切换的时候可以由我们用户来进行把控，这种方式进程和线程无法做到
+
+### 并行和并发
+
+![并发和并行](images/并发和并行.png)
+
+### threading 模块
+
+使用函数创建多线程模型
+
+``` python
+threading.Thread(target=run, args=("thread 1", ))
+```
+
+使用类创建多线程模型
+
+``` python
+class MyThread(threading.Thread)
+```
+
+函数方式：
+
+[p1_func.py](2线程/p1_func.py)
+
+``` python
+import threading
+
+# 这个函数名可随便定义
+def run(n):
+    print("current task：", n)
+
+if __name__ == "__main__":
+    t1 = threading.Thread(target=run, args=("thread 1",))
+    t2 = threading.Thread(target=run, args=("thread 2",))
+    t1.start()
+    t2.start()
+
+    
+# 调用方
+# 阻塞  得到调用结果之前，线程会被挂起
+# 非阻塞 不能立即得到结果，不会阻塞线程
+
+# 被调用方 
+# 同步 得到结果之前，调用不会返回
+# 异步 请求发出后，调用立即返回，没有返回结果，通过回调函数得到实际结果
+```
+
+面向对象方式
+
+[p2_class.py](2线程/p2_class.py)
+
+``` python
+import threading
+
+class MyThread(threading.Thread):
+    def __init__(self, n):
+        super().__init__() # 重构run函数必须要写
+        self.n = n
+
+    def run(self):
+        print("current task：", self.n)
+
+if __name__ == "__main__":
+    t1 = MyThread("thread 1")
+    t2 = MyThread("thread 2")
+
+    t1.start()
+    t2.start()
+    # 将 t1 和 t2 加入到主线程中
+    t1.join()
+    t2.join()
+```
+
+多线程调试工具
+
+[p3_alive.py](2线程/p3_alive.py)
+
+``` python
+import threading
+import time
+def start():
+    time.sleep(5)
+
+
+thread1 = threading.Thread(target=start)
+print(thread1.is_alive())
+
+thread1.start()
+
+print(thread1.getName())
+print(thread1.is_alive())
+
+thread1.join()
+
+print(thread1.is_alive())
+```
+
+## 第九节：多线程：线程锁
+
+[锁对象学习文档](https://docs.python.org/zh-cn/3.7/library/threading.html#lock-objects)
+
+[递归锁对象](https://docs.python.org/zh-cn/3.7/library/threading.html#rlock-objects)
+
+没有加锁
+
+[p4_nolock.py](2线程/p4_nolock.py)
+
+``` python
+import threading
+import time
+num = 0
+def addone():
+    global num
+    num += 1
+    time.sleep(1)  #  必须休眠，否则观察不到脏数据
+    print(f'num value is {num}')
+
+for i in range(10):
+    t = threading.Thread(target = addone)
+    t.start()
+
+print('main thread stop')
+```
+
+加锁
+
+[p5_lock.py](2线程/p5_lock.py)
+
+``` python
+import threading
+import time
+
+num = 0
+mutex = threading.Lock()
+
+class MyThread(threading.Thread):
+    def run(self):
+        global num
+        time.sleep(1)
+
+        if mutex.acquire(1):    # 加锁 
+            num = num + 1
+            print(f'{self.name} : num value is  {num}')
+        mutex.release()   #解锁
+
+if __name__ == '__main__':
+    for i in range(5):
+        t = MyThread()
+        t.start()
+```
+
+lock和rlock都是普通锁，但是lock是不可以嵌套的，而rlock可以，如果lock嵌套会出现死锁的情况
+
+[p6_rlock.py](2线程/p6_rlock.py)
+
+``` python
+import threading
+import time
+# Lock普通锁不可嵌套，RLock普通锁可嵌套
+mutex = threading.RLock()
+
+class MyThread(threading.Thread):
+    def run(self):
+        if mutex.acquire(1):
+            print("thread " + self.name + " get mutex")
+            time.sleep(1)
+            mutex.acquire()
+            mutex.release()
+        mutex.release()
+
+if __name__ == '__main__':
+    for i in range(5):
+        t = MyThread()
+        t.start()
+```
+
+条件锁
+
+[p7_condition.py](2线程/p7_condition.py)
+
+``` python
+# 条件锁：该机制会使线程等待，只有满足某条件时，才释放n个线程
+import threading
+ 
+def condition():
+    ret = False
+    r = input(">>>")
+    if r == "yes":
+        ret = True
+    return ret
+ 
+def func(conn,i):
+    # print(i)
+    conn.acquire()
+    conn.wait_for(condition)  # 这个方法接受一个函数的返回值
+    print(i+100)
+    conn.release()
+ 
+c = threading.Condition()
+for i in range(10):
+    t = threading.Thread(target=func,args=(c,i,))
+    t.start()
+
+# 条件锁的原理跟设计模式中的生产者／消费者（Producer/Consumer）模式类似
+```
+
+信号量
+
+[p8_semaphore.py](2线程/p8_semaphore.py)
+
+``` python
+# 信号量：内部实现一个计数器，占用信号量的线程数超过指定值时阻塞
+import time
+import threading
+ 
+def run(n):
+    semaphore.acquire()
+    print("run the thread: %s" % n)
+    time.sleep(1)
+    semaphore.release()
+
+num = 0
+semaphore = threading.BoundedSemaphore(5)  # 最多允许5个线程同时运行
+for i in range(20):
+    t = threading.Thread(target=run,args=(i,))
+    t.start()
+```
+
+事件
+
+[p9_event.py](2线程/p9_event.py)
+
+``` python
+# 事件： 定义一个flag，set设置flag为True ，clear设置flag为False
+import threading
+ 
+def func(e,i):
+    print(i)
+    e.wait()  # 检测当前event是什么状态，如果是红灯，则阻塞，如果是绿灯则继续往下执行。默认是红灯。
+    print(i+100)
+ 
+event = threading.Event()
+for i in range(10):
+    t = threading.Thread(target=func,args=(event,i))
+    t.start()
+ 
+event.clear()  # 主动将状态设置为红灯
+inp = input(">>>")
+if inp == "1":
+    event.set()# 主动将状态设置为绿灯
+
+
+
+# 练习： 使用redis实现分布式锁
+```
+
+定时器
+
+[p10_timer.py](2线程/p10_timer.py)
+
+``` python
+# 定时器： 指定n秒后执行
+from threading import Timer
+def hello():
+    print("hello, world")
+t = Timer(1,hello)  # 表示1秒后执行hello函数
+t.start()
+```
+
+## 第十节：多线程：队列
+
+## 第十一节：多线程：
+
+## 第十二节：多线程：
+
+## 第十三节：多线程：
