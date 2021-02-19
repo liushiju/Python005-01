@@ -926,8 +926,534 @@ t.start()
 
 ## 第十节：多线程：队列
 
-## 第十一节：多线程：
+[queue 学习文档](https://docs.python.org/zh-cn/3.7/library/queue.html)
 
-## 第十二节：多线程：
+生产者消费者模型
 
-## 第十三节：多线程：
+[p11_queue.py](2线程/p11_queue.py)
+
+``` python
+import queue
+q = queue.Queue(5)
+q.put(111)        # 存队列
+q.put(222)
+q.put(333)
+ 
+print(q.get())    # 取队列
+print(q.get())
+q.task_done()     # 每次从queue中get一个数据之后，当处理好相关问题，最后调用该方法，
+                  # 以提示q.join()是否停止阻塞，让线程继续执行或者退出
+print(q.qsize())  # 队列中元素的个数， 队列的大小
+print(q.empty())  # 队列是否为空
+print(q.full())   # 队列是否满了
+
+###############
+
+import queue
+import threading
+import random
+import time
+
+writelock = threading.Lock()
+
+class Producer(threading.Thread):
+    def __init__(self, q, con, name):
+        super(Producer, self).__init__()
+        self.q = q
+        self.name = name
+        self.con =con
+        print(f'Producer {self.name} Started')
+    
+    def run(self):
+        while 1:
+            global writelock
+            self.con.acquire()  # 获得锁对象
+
+            if self.q.full():   # 队列满
+                with writelock:
+                    print('Queue is full , producer wait')
+                self.con.wait()  # 等待资源
+            
+            else:
+                value = random.randint(0,10)
+                with  writelock:
+                    print(f'{self.name} put value {self.name} {str(value)} in queue')
+                self.q.put( (f'{self.name} : {str(value)}') ) # 放入队列
+                self.con.notify()   # 通知消费者
+                time.sleep(1)
+        self.con.release()
+
+
+class Consumer(threading.Thread):
+    def __init__(self, q, con, name):
+        super(Consumer, self).__init__()
+        self.q = q
+        self.name = name
+        self.con =con
+        print(f'Consumer {self.name} Started')
+
+    def run(self):
+        while 1:
+            global writelock
+            self.con.acquire()
+            if self.q.empty():   # 队列空
+                with writelock:
+                    print('Queue is empty , consumer wait')
+                self.con.wait()  # 等待资源
+            else:
+                value = self.q.get()
+                with writelock:
+                    print(f'{self.name} get value {value} from queue')              
+                self.con.notify()   # 通知生产者
+                time.sleep(1)
+        self.con.release()
+
+
+
+if __name__ == '__main__':
+    q = queue.Queue(10)
+    con = threading.Condition()   # 条件变量锁
+
+    p1 = Producer(q, con, 'P1')
+    p1.start()
+    p2 = Producer(q, con, 'P2')
+    p2.start()
+    c1 = Consumer(q, con, 'C1')
+    c1.start()
+
+# 练习使用列表实现队列
+```
+
+优先级队列
+
+[p12_priorityQ.py](2线程/p12_priorityQ.py)
+
+``` python
+import queue
+q = queue.PriorityQueue()
+# 每个元素都是元组
+# 数字越小优先级越高
+# 同优先级先进先出
+q.put((1,"work"))
+q.put((-1,"life"))
+q.put((1,"drink"))
+q.put((-2,"sleep"))
+print(q.get())
+print(q.get())
+print(q.get())
+print(q.get())
+
+# queue.LifoQueue 后进先出队列,类似堆栈
+# q.deque 双向队列
+```
+
+[p13_downQ.py](2线程/p13_downQ.py)
+
+``` python
+import os
+import queue
+import threading
+import requests
+from fake_useragent import UserAgent
+
+class DownloadThread(threading.Thread):
+    def __init__(self, q):
+        super().__init__()
+        self.q = q
+    
+    def run(self):
+        while True:
+            url = self.q.get()  # 从队列取出一个元素
+    
+            print(f'{self.name} begin download {url}')
+            self.download_file(url)  # 下载文件
+            self.q.task_done()   # 下载完成发送信号
+            print(f'{self.name} download completed')            
+
+    def download_file(self, url):
+        ua = UserAgent()
+        headers={"User-Agent":ua.random}
+        r = requests.get(url, stream=True, headers=headers)
+        fname = os.path.basename(url) + '.html'
+        with open(fname, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if not chunk: break
+                f.write(chunk)
+
+if __name__ == '__main__':
+    urls = ['http://www.baidu.com',
+            'http://www.python.org',
+            'http://www.douban.com']
+    
+    q = queue.Queue()
+
+    for i in range(5):
+        t = DownloadThread(q) # 启动5个线程
+        t.setDaemon(True)
+        t.start()
+    
+    for url in urls:
+        q.put(url)
+    
+    q.join()
+```
+
+## 第十一节：多线程：线程池
+
+[concurrent.futures - 线程池执行器](https://docs.python.org/zh-cn/3.7/library/concurrent.futures.html#threadpoolexecutor)
+
+[concurrent.futures - 进程池执行器](https://docs.python.org/zh-cn/3.7/library/concurrent.futures.html#processpoolexecutor)
+
+### 线程池
+
+#### 一般的线程池
+
+``` python
+from multiprocessing.dummy import Pool as ThreadPool
+```
+
+#### 并行任务的高级封装(python3.2 版本以后支持)
+
+``` python
+from concurrent.futures import ThreadPoolExecutor
+```
+
+#### 示例
+
+[p14_pool.py](2线程/p14_pool.py)
+
+``` python
+import requests
+from multiprocessing.dummy import Pool as ThreadPool
+
+urls = [
+   'http://www.baidu.com',
+   'http://www.sina.com.cn',
+   'http://www.163.com',
+   'http://www.qq.com',
+   'http://www.taobao.com',            
+   ]
+
+# 开启线程池
+pool = ThreadPool(4)
+# 获取urls的结果
+results = pool.map(requests.get, urls)
+# 关闭线程池等待任务完成退出
+pool.close()
+pool.join()
+
+for  i in results:
+    print(i.url)
+```
+
+[p15_threadpoolExecutor.py](2线程/p15_threadpoolExecutor.py)
+
+``` python
+# Python3.2 中引入了 concurrent.futures 库，利用这个库可以非常方便的使用多线程、多进程
+from concurrent.futures import ThreadPoolExecutor
+import time
+
+def func(args):
+    print(f'call func {args}')
+    
+if __name__ == "__main__":
+    seed = ['a', 'b', 'c', 'd']
+
+    with ThreadPoolExecutor(3) as executor:
+        executor.submit(func, seed)
+    
+    time.sleep(1)
+
+    with ThreadPoolExecutor(3) as executor2:
+        executor2.map(func, seed)
+    
+    time.sleep(1)
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(pow, 2, 3)
+        print(future.result())
+```
+
+死锁
+
+[p16_deadlock.py](2线程/p16_deadlock.py)
+
+``` python
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+def wait_on_b():
+    time.sleep(5)
+    print(b.result())  # b will never complete because it is waiting on a.
+    return 5
+
+def wait_on_a():
+    time.sleep(5)
+    print(a.result())  # a will never complete because it is waiting on b.
+    return 6
+
+executor = ThreadPoolExecutor(max_workers=2)
+a = executor.submit(wait_on_b)
+b = executor.submit(wait_on_a)
+
+# 当回调已关联了一个 Future 然后再等待另一个 Future 的结果时就会发产死锁情况
+# https://docs.python.org/zh-cn/3.7/library/concurrent.futures.html#threadpoolexecutor
+```
+
+## 第十二节：多线程：GIL锁与多线程的性能瓶颈
+
+[p18_pvt.py](2线程/p18_pvt.py)
+
+``` python
+# process vs thread
+import multiprocessing as mp
+
+def job(q):
+    res = 0
+    for i in range(1000000):
+        res += i+i**2+i**3
+    q.put(res) # queue
+
+# 多核
+def multicore():
+    q = mp.Queue()
+    p1 = mp.Process(target=job, args=(q,))
+    p2 = mp.Process(target=job, args=(q,))
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+    res1 = q.get()
+    res2 = q.get()
+    print('multicore:',res1 + res2)
+
+# 创建多线程mutithread
+# 接下来创建多线程程序，创建多线程和多进程有很多相似的地方。
+# 首先import threading然后定义multithread()完成同样的任务
+import threading as td
+
+def multithread():
+    q = mp.Queue() # thread可放入process同样的queue中
+    t1 = td.Thread(target=job, args=(q,))
+    t2 = td.Thread(target=job, args=(q,))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    res1 = q.get()
+    res2 = q.get()
+    print('multithread:', res1 + res2)
+
+# 创建普通函数
+def normal():
+    res = 0
+    for _ in range(2):
+        for i in range(1000000):
+            res += i + i**2 + i**3
+    print('normal:', res)
+# 在上面例子中我们建立了两个进程或线程，均对job()进行了两次运算，
+# 所以在normal()中我们也让它循环两次
+# 运行时间
+import time
+
+if __name__ == '__main__':
+    st = time.time()
+    normal()
+    st1 = time.time()
+    print('normal time:', st1 - st)
+    multithread()
+    st2 = time.time()
+    print('multithread time:', st2 - st1)
+    multicore()
+    print('multicore time:', time.time() - st2)
+
+# 普通/多线程/多进程的运行时间分别是1.41，1.47和0.75秒。 
+# 我们发现多核/多进程最快，说明在同时间运行了多个任务。 
+# 而多线程的运行时间居然比什么都不做的程序还要慢一点，
+# 说明多线程还是有一定的短板的（GIL）。
+```
+
+### 多线程 与 GIL
+
+进程与线程性能对比
+
+GIL 全局解释锁(Global Interpreter Lock)
+
+* 每个进程只有一个 GIL 锁
+* 拿到 GIL 锁可以使用 CPU
+* CPython 解释器不是真正意义的多线程，属于伪并发
+
+每一个进程只有一个GIL锁，CPython默认是单独的一个进程，即使多线程，也是在一个进程里运行
+
+### I/O 操作中 GIL 的变换过程
+
+一旦遇到I/O操作，GIL锁就会被释放，其他线程再去抢夺锁的运行权限
+
+![IO操作中GIL的变换过程](images/IO操作中GIL的变换过程.png)
+
+多线程在 I/O 密集型的场景下适用
+多进程在 CPU 密集型的场景下适用
+
+### 无 I/O 操作中 GIL 的变换过程
+
+![无IO操作中GIL的变换过程](images/无IO操作中GIL的变换过程.png)
+
+## 第十三节：迷你Scrapy项目实践
+
+多线程适合 I/O 密集型应用，比如爬虫
+
+Thread + requests + queue 根据理解实现一个 mini 的 Scrapy
+
+[miniScrapy.py](miniScrapy.py)
+
+``` python
+import requests
+from lxml import etree
+from queue import Queue
+import threading
+import json
+
+class CrawlThread(threading.Thread):
+    '''
+    爬虫类
+    '''
+    def __init__(self,thread_id,queue):
+        super().__init__() 
+        self.thread_id = thread_id  
+        self.queue = queue
+
+    def run(self):
+        '''
+        重写run方法
+        '''
+        print(f'启动线程：{self.thread_id}')
+        self.scheduler()
+        print(f'结束线程：{self.thread_id}')
+
+    # 模拟任务调度
+    def scheduler(self):
+        while True:
+            if self.queue.empty(): #队列为空不处理
+                break
+            else:
+                page = self.queue.get()
+                print('下载线程为：',self.thread_id," 下载页面：",page)
+                url = f'https://book.douban.com/top250?start={page*25}'
+                headers = {
+                    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36'
+                }
+                try:
+                    # downloader 下载器
+                    response = requests.get(url,headers=headers) 
+                    dataQueue.put(response.text)
+                except Exception as e:
+                    print('下载出现异常',e)
+
+class ParserThread(threading.Thread):
+    '''
+    页面内容分析
+    '''
+    def __init__(self,thread_id,queue,file):
+        threading.Thread.__init__(self)      # 上面使用了super()
+        self.thread_id = thread_id
+        self.queue = queue
+        self.file = file
+
+    def run(self):
+        print(f'启动线程：{self.thread_id}')
+        while not flag:                      # 这里有什么优化思路？
+            try:
+                item = self.queue.get(False) # 参数为false时队列为空，抛出异常
+                if not item:                 # 为什么要判断？
+                    continue
+                self.parse_data(item)
+                self.queue.task_done() # get之后检测是否会阻塞
+            except Exception as e:
+                pass
+        print(f'结束线程：{self.thread_id}')
+
+    def parse_data(self,item):
+        '''
+        解析网页内容的函数
+        :param item:
+        :return:
+        '''
+        try:
+            html = etree.HTML(item)
+            books = html.xpath('//div[@class="pl2"]')
+            for book in books:
+                try:
+                    title = book.xpath('./a/text()')
+                    link = book.xpath('./a/@href')
+                    response={
+                        'title':title,
+                        'link':link
+                    } 
+                    #解析方法和scrapy相同，再构造一个json
+                    json.dump(response,fp=self.file,ensure_ascii=False) 
+                except Exception as e:
+                    print('book error', e)
+
+        except Exception as e:
+            print('page error',e)
+
+
+dataQueue = Queue() # 存放解析数据的queue
+flag = False
+
+if __name__ == '__main__':
+    # 将结果保存到一个json文件中
+    output = open('book.json','a',encoding='utf-8') 
+
+    # 任务队列，存放网页的队列
+    pageQueue = Queue(20) 
+    for page in range(0,11): 
+        pageQueue.put(page) 
+    
+    # 爬虫线程
+    crawl_threads = []
+    crawl_name_list = ['crawl_1','crawl_2','crawl_3'] 
+    for thread_id in crawl_name_list:
+        thread = CrawlThread(thread_id,pageQueue)
+        thread.start() 
+        crawl_threads.append(thread)
+    
+    # 解析线程
+    parse_thread = []
+    parser_name_list = ['parse_1','parse_2','parse_3']
+    for thread_id in parser_name_list: 
+        thread = ParserThread(thread_id,dataQueue,output)
+        thread.start() 
+        parse_thread.append(thread)
+
+    # 结束crawl线程
+    for t in crawl_threads:
+        t.join()
+    
+    # 结束parse线程
+    flag = True
+    for t in parse_thread:
+        t.join() 
+
+    output.close()
+    print('退出主线程')
+```
+
+[miniScrapy2.py](miniScrapy2.py)
+
+``` python
+import asyncio
+
+@asyncio.coroutine
+def task():
+    print('request')
+    yield from asyncio.sleep(3)
+    print('response')
+
+
+scheduler = [task(), task(), task()]
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(asyncio.gather(*scheduler))
+loop.close()
+```
