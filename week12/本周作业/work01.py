@@ -53,7 +53,7 @@ def parse(url):
             # 获取电影类型
             movie_t = tags.find('li').text
             movie_type = movie_t.replace('\n','、').strip('、')
-            # # 上映时间
+            # 上映时间
             movie_t = tags.find('ul').text
             movie_time = movie_t.split()[0]
             res = [f"{movie_name}", f"{movie_type}", f"{movie_time}"]
