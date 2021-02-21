@@ -361,8 +361,98 @@ Scrapy 目录结构
 
 ## 第十节: 将requests爬虫改写为Scrapy爬虫
 
+[查看课程代码](课程代码\spider1)
+
 启动爬虫
 
 ``` python
 scrapy crawl douban
+```
+
+## 第十一节: 通过Scrapy爬虫爬取电影详情页信息
+
+[查看课程代码](课程代码\spider1)
+
+## 第十二节: XPath详解
+
+切换分支: `git checkout 2c`
+
+[Scrapy Xpath 官方学习文档](https://docs.scrapy.org/en/latest/topics/selectors.html#working-with-xpaths)
+
+[Xpath 中文文档](https://www.w3school.com.cn/xpath/index.asp)
+
+[Xpath 英文文档](https://www.w3.org/TR/2017/REC-xpath-31-20170321/#nt-bnf)
+
+## 第十三节: yield与推导式
+
+切换分支： `git checkout 2d`
+
+[yield 表达式官方文档](https://docs.python.org/zh-cn/3.7/reference/expressions.html#yieldexpr)
+
+[yield 语句官方文档](https://docs.python.org/zh-cn/3.7/reference/simple_stmts.html#yield)
+
+[Python 推导式官方文档](https://docs.python.org/zh-cn/3.7/tutorial/datastructures.html#list-comprehensions)
+
+### yield
+
+yield 可以作为语句和表达式来使用
+
+yield 和 return 的区别
+
+``` python
+def chain(*iterables):
+for it in iterables:
+yield it
+
+>>> s = 'ABC'
+>>> list(chain(s))
+
+['A', 'B', 'C']
+```
+
+[yield_demo.py](课程代码/yield_demo.py)
+
+``` python
+def chain(num):
+    for it in range(num):
+        yield it
+
+num = 5
+y = chain(num)
+next(y)
+list(y)
+next(y)
+```
+
+[comprehension.py](课程代码/comprehension.py)
+
+``` python
+mylist = []
+for i in range(1, 11):
+    if i > 5:
+        mylist.append(i**2)
+
+# 列表推导式
+mylist2 = [i**2 for i in range(1, 11) if i > 5]
+
+# 循环嵌套
+mylist = [str(i) + j for i in range(1, 6) for j in 'ABCDE']
+
+# 用推导式将字典转换为列表
+mydict = {'key1': 'value1', 'key2': 'value2'}
+mylist2 = [key + ':' + value for key, value in mydict.items()]
+
+# 推导式生成字典
+mydict = {i: i*i for i in (5, 6, 7)}
+
+# 推导式实现字典的k-v互换
+{value: key for key, value in mydict.items()}
+
+# 推导式生成集合
+myset = {i for i in 'HarryPotter' if i not in 'er'}
+
+# 推导式生成 生成器
+mygenerator = (i for i in range(0, 11))
+print(mygenerator)
+print(list(mygenerator))
 ```
