@@ -4,7 +4,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 from fake_useragent import UserAgent
 from collections import Counter
-
 '''
 安装并使用 requests、bs4 库，爬取猫眼电影的前 10 个电影名称、电影类型和上映时间，并以 UTF-8 字符集保存到 csv 格式的文件中。
 '''
@@ -23,7 +22,7 @@ def crawl_maoyan(url):
         "Host": "maoyan.com",
     }
     response = requests.get(url, headers=headers)
-    # print(response.status_code)
+    print(response.status_code)
     bs_info = bs(response.text, 'html.parser')
     # print(bs_info)
     return bs_info
@@ -43,7 +42,11 @@ def get_htmls(url):
 def parse(url):
     all_urls = get_htmls(url)
     htmls = Counter(all_urls)
-    urls = sorted(htmls)
+    urls = [html for html in htmls]
+    # for url in all_urls:
+    #     if url not in urls:
+    #         urls.append(url)
+    print(urls)
     result = []
     for url in urls:
         bs_info = crawl_maoyan(url)
@@ -55,7 +58,7 @@ def parse(url):
             movie_type = movie_t.replace('\n','、').strip('、')
             # 上映时间
             movie_t = tags.find('ul').text
-            movie_time = movie_t.split()[0]
+            movie_time = movie_t.split('分钟')[1].replace('\n','').strip()
             res = [f"{movie_name}", f"{movie_type}", f"{movie_time}"]
             result.append(res)
     print(result)
