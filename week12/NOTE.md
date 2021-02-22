@@ -2,6 +2,8 @@
 
 ## 第一节：用requests写一个最简单的爬虫
 
+切换分支: `git checkout 1a`
+
 [requests 官方文档链接](https://requests.readthedocs.io/zh_CN/latest/)
 
 ### 开发的四步骤
@@ -77,6 +79,8 @@ for i in cookie:
 
 ## 第二节：使用BeautifulSoup解析爬取到的网页
 
+切换分支: `git checkout 1b`
+
 [Beautiful Soup 官方文档链接](https://www.crummy.com/software/BeautifulSoup/bs4/doc.zh/)
 
 [1b_bs4.py](课程代码/1b_bs4.py)
@@ -108,6 +112,8 @@ for tags in bs_info.find_all('div', attrs={'class': 'hd'}):
 ```
 
 ## 第三节：使用XPath解析网页
+
+切换分支: `git checkout 1c`
 
 [1c_movie.py](课程代码/1c_movie.py)
 
@@ -335,6 +341,8 @@ HTTP 状态码（响应码）
 
 ## 第九节: Scrapy爬虫目录结构解析
 
+切换分支: `git checkout 2a`
+
 安装
 
 ``` python
@@ -361,6 +369,8 @@ Scrapy 目录结构
 
 ## 第十节: 将requests爬虫改写为Scrapy爬虫
 
+切换分支: `git checkout 2b`
+
 [查看课程代码](课程代码\spider1)
 
 启动爬虫
@@ -370,6 +380,8 @@ scrapy crawl douban
 ```
 
 ## 第十一节: 通过Scrapy爬虫爬取电影详情页信息
+
+切换分支: `git checkout 2b`
 
 [查看课程代码](课程代码\spider1)
 
