@@ -7,6 +7,7 @@
 
 import csv
 import pandas as pd
+from pathlib import Path
 
 class Work2MaoyanPipeline:
     def process_item(self, item, spider):
@@ -16,16 +17,9 @@ class Work2MaoyanPipeline:
         headline = ['电影名称', '电影类型', '上映时间']
         res = [[movie_title.strip(), movie_type.strip(), movie_time.strip()]]
         print(res)
-        # with open('./猫眼TOP10_scrapy.csv', 'a+',newline='', encoding='gbk') as f:
-        #     reader = csv.reader(f)
-        #     writer = csv.writer(f)
-        #     for row in reader:
-        #         if row[0] == '':
-        #             writer.writerow(headline)
-        #         else:
-        #             writer.writerows(res)
-
+        savefile = './猫眼TOP10_scrapy.csv'
         movie1 = pd.DataFrame(data = res)
-        movie1.to_csv('./猫眼TOP10_scrapy.csv', mode='a', encoding='gbk', index=False, header=False)
-
+        if not Path(savefile).exists():
+            movie1.to_csv(savefile, encoding='utf8', index=False, header=headline)
+        movie1.to_csv(savefile, mode='a', encoding='utf8', index=False, header=False)
         return item
