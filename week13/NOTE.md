@@ -468,7 +468,9 @@ finally:
 [p7_filedownload.py](课程代码/p7_filedownload.py)
 
 ``` python
+
 ########## 小文件下载：
+
 import requests
 image_url = "https://www.python.org/static/community_logos/python-logo-master-v3-TM.png"
 r = requests.get(image_url)
@@ -476,6 +478,7 @@ with open("python_logo.png",'wb') as f:
     f.write(r.content)
 
 ############# 大文件下载：
+
 # 如果文件比较大的话，那么下载下来的文件先放在内存中，内存还是比较有压力的。
 # 所以为了防止内存不够用的现象出现，我们要想办法把下载的文件分块写到磁盘中。
 import requests
@@ -486,3 +489,97 @@ with open("python.pdf", "wb") as pdf:
         if chunk:
             pdf.write(chunk)
 ```
+
+## 第六节：反爬虫：验证码识别
+
+切换分支： `git checkout 2e`
+
+[各种语言识别库](https://github.com/tesseract-ocr/tessdata)
+
+[captcha_pil.py](课程代码/p8_captcha/验证码识别/captcha_pil.py)
+
+``` python
+
+# 先安装依赖库libpng, jpeg, libtiff, leptonica
+# brew install leptonica
+# 安装tesseract
+# brew install  tesseract
+# 与python对接需要安装的包
+# pip3 install Pillow
+# pip3 install pytesseract
+
+import requests
+import os
+from PIL import Image
+import pytesseract
+
+# 下载图片
+# session = requests.session()
+# img_url = 'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1320441599,4127074888&fm=26&gp=0.jpg'
+# agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
+# headers = {'User-Agent': agent}
+# r = session.get(img_url, headers=headers)
+
+# with open('cap.jpg', 'wb') as f:
+#     f.write(r.content)
+
+# 打开并显示文件
+im = Image.open('cap.jpg')
+im.show()
+
+# 灰度图片
+gray = im.convert('L')
+gray.save('c_gray2.jpg')
+im.close()
+
+# 二值化
+threshold = 100
+table = []
+
+for i in range(256):
+    if i < threshold:
+        table.append(0)
+    else:
+        table.append(1)
+
+out = gray.point(table, '1')
+out.save('c_th.jpg')
+
+th = Image.open('c_th.jpg')
+print(pytesseract.image_to_string(th,lang='chi_sim+eng'))
+
+# 各种语言识别库 https://github.com/tesseract-ocr/tessdata
+# 放到 /usr/local/Cellar/tesseract/版本/share/tessdata
+```
+
+## 第七节：爬虫中间件&系统代理IP
+
+切换分支： `git checkout 3a`
+
+![srcrapy架构2](../week12/images/scrapy架构2.png)
+
+[项目样例](课程代码/proxyspider/)
+
+## 第八节：自定义中间件&随机代理IP
+
+切换分支： `git checkout 3a`
+
+### 下载中间件
+
+#### 如何编写一个下载中间件？一般需要重写下面四个主要方法
+
+ `process_request(request, spider)`
+
+request 对象经过下载中间件时会被调用，优先级高先调用
+
+ `process_response(request, response, spider)`
+
+response 对象经过下载中间件时会被调用，优先级高后调用
+
+ `process_exception(request, exception, spider)`
+
+当 process_response() 和 process_request() 抛出异常时会被调用
+
+ `from_craler(cls, crawler)`
+
+使用 crawler 来创建中间器对象，并（必须）返回一个中间件对象
