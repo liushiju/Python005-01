@@ -583,3 +583,33 @@ response 对象经过下载中间件时会被调用，优先级高后调用
  `from_craler(cls, crawler)`
 
 使用 crawler 来创建中间器对象，并（必须）返回一个中间件对象
+
+## 第九节：分布式爬虫
+
+切换分支： `git checkout 3b`
+
+[redis 官方网址](https://redis.io/)
+
+Scrapy 原生不支持分布式，**多机之间需要 Redis 实现队列和管道的共享**
+scrapy-redis 很好的实现了 Scrapy 和 Redis 的集成
+
+### 使用 scrapy-redis 之后 Scrapy 的主要变化
+
+1、使用了 RedisSpider 类提到了 Spider 类
+
+2、Scheduler 的 queue 由 Redis 实现
+
+3、item pipeline 由 Redis 实现
+
+安装并启动：
+
+``` Bash
+pip install scrapy-redis
+redis-server redis.conf
+```
+
+[redis 配置文件](课程代码/redis.conf)
+
+[scrapycluster 工程代码文件](课程代码/scrapycluster)
+
+主要在 [setting.py](课程代码/scrapycluster/scrapycluster/settings.py) 中设置，替换组件，替换成 redis 相关组件
