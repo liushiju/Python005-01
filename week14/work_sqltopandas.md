@@ -10,7 +10,7 @@ sql  =  'SELECT *  FROM data'
 df = pd.read_sql(sql,db)
 ```
 
-1、SELECT * FROM data; 
+1、SELECT * FROM data;
 
 ``` python
 pd.DataFrame(df)
