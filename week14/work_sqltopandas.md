@@ -59,7 +59,7 @@ pd.merge(table1, table2, on='id', how='inner')
 8、SELECT * FROM table1 UNION SELECT * FROM table2;
 
 ``` python
-pd.concat([table1, table2])
+pd.concat([table1, table2]).drop_duplicates()
 ```
 
 9、DELETE FROM table1 WHERE id=10;
