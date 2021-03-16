@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 
 from article.serializers import ArticleAPISerializer
-from models import UserProfile
+from usermanager.models import UserProfile
 
 
 class UserProfileRegSerializer(serializers.ModelSerializer):

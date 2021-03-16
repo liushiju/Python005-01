@@ -6,12 +6,11 @@ from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from article.models import Article, Comment
 from article.serializers import ArticleAPISerializer, CommentAPISerializer
-from models import UserProfile
-from serializers import UserProfileRegSerializer, UserProfileSerializer
-from permissions import IsOwnerOrReadOnly
+from usermanager.models import UserProfile
+from usermanager.serializers import UserProfileRegSerializer, UserProfileSerializer
+from utils.permission import IsOwnerOrReadOnly
 
 
 class UserProfileRegViewSet(viewsets.ModelViewSet):

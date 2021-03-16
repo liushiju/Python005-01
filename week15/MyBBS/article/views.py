@@ -6,10 +6,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
-from filter import CommentFilters
-from models import Article, Comment, Tag
-from serializers import ArticleAPISerializer, CommentAPISerializer, TagAPISerializer
+from article.filter import CommentFilters
+from article.models import Article, Comment, Tag
+from article.serializers import ArticleAPISerializer, CommentAPISerializer, TagAPISerializer
 from usermanager.models import UserProfile
 from utils.permissions import IsOwnerOrReadOnly
 

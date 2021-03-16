@@ -37,11 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'usermanager',
     'article',
-    # 'rest_framework',
-    # 'django_filters',
-    # 'social_django',
+    'usermanager',
+    'rest_framework',
+    'django_filters',
+    # 集成第三方登录
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -91,8 +92,8 @@ DATABASES = {
         'NAME': 'mybbs',
         'USER': 'mybbs',
         'PASSWORD': 'mybbs123456',
-        'HOST': 'server1',
-        'PORT': '3306',
+        'HOST': '47.74.151.50',
+        'PORT': '3367',
         'CONN_MAX_AGE':5*60,
         'OPTIONS':{'charset':'utf8mb4'},
     },
@@ -141,7 +142,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
 }
 
-AUTH_USER_MODEL = 'user.UserProfile'
+AUTH_USER_MODEL = 'usermanager.UserProfile'
 
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.weibo.WeiboOAuth2',
