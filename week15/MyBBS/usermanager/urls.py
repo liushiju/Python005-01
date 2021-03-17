@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from . import views
+from usermanager import views
 
 router = routers.DefaultRouter()
 router.register('users', views.UserProfileRegViewSet)

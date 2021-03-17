@@ -10,8 +10,7 @@ from article.models import Article, Comment
 from article.serializers import ArticleAPISerializer, CommentAPISerializer
 from usermanager.models import UserProfile
 from usermanager.serializers import UserProfileRegSerializer, UserProfileSerializer
-from utils.permission import IsOwnerOrReadOnly
-
+from permissions import IsOwnerOrReadOnly
 
 class UserProfileRegViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()

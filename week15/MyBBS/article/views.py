@@ -10,7 +10,7 @@ from article.filter import CommentFilters
 from article.models import Article, Comment, Tag
 from article.serializers import ArticleAPISerializer, CommentAPISerializer, TagAPISerializer
 from usermanager.models import UserProfile
-from utils.permissions import IsOwnerOrReadOnly
+from permissions import IsOwnerOrReadOnly
 
 
 class ArticleAPIViewSet(viewsets.ModelViewSet):

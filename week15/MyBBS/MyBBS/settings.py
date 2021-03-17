@@ -89,10 +89,10 @@ WSGI_APPLICATION = 'MyBBS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mybbs',
+        'NAME': 'bbsdb',
         'USER': 'mybbs',
         'PASSWORD': 'mybbs123456',
-        'HOST': '47.74.151.50',
+        'HOST': 'server1',
         'PORT': '3367',
         'CONN_MAX_AGE':5*60,
         'OPTIONS':{'charset':'utf8mb4'},
@@ -102,7 +102,7 @@ DATABASES = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://server1:6379/1",
+        "LOCATION": "redis://server1:6379/2",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
